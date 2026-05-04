@@ -34,6 +34,43 @@ local function clickButton(button)
 	clickAt(x, y)
 end
 
+local function isAreaEmpty(areaPart)
+	local areaPos = areaPart.Position
+	for _, otherPlayer in ipairs(Players:GetPlayers()) do
+		if otherPlayer ~= player then
+			local otherChar = otherPlayer.Character
+			if otherChar then
+				local otherRoot = otherChar:FindFirstChild("HumanoidRootPart")
+				if otherRoot then
+					local dist = (otherRoot.Position - areaPos).Magnitude
+					if dist < 50 then
+						return false
+					end
+				end
+			end
+		end
+	end
+	return true
+end
+
+local function findEmptyArea(lifts)
+	local allAreas = {}
+	for _, lift in ipairs(lifts:GetChildren()) do
+		local area = lift:FindFirstChild("Area")
+		if area then
+			table.insert(allAreas, area)
+		end
+	end
+
+	for _, area in ipairs(allAreas) do
+		if isAreaEmpty(area) then
+			return area
+		end
+	end
+
+	return nil
+end
+
 local function runMacro(character)
 	if running then return end
 	running = true
@@ -44,17 +81,36 @@ local function runMacro(character)
 	if workspace:FindFirstChild("Lifts") then
 
 		local lifts = workspace:WaitForChild("Lifts")
-		local toiletHQ = lifts:WaitForChild("ToiletHQ")
-		local area = toiletHQ:WaitForChild("Area")
 
-		rootPart.CFrame = area.CFrame
-		task.wait(2)
+		local targetArea = nil
+		local attempts = 0
+
+		while targetArea == nil and attempts < 20 do
+			targetArea = findEmptyArea(lifts)
+			if targetArea == nil then
+				task.wait(2)
+				attempts = attempts + 1
+			end
+		end
+
+		if targetArea == nil then
+			running = false
+			return
+		end
+
+		rootPart.CFrame = targetArea.CFrame
+		task.wait(1)
+
+		if not isAreaEmpty(targetArea) then
+			running = false
+			task.spawn(runMacro, character)
+			return
+		end
 
 		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
 		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
 		local startButton = queueFrame:WaitForChild("Start", 15)
 
-		task.wait(0.5)
 		clickButton(startButton)
 
 		task.wait(2)
