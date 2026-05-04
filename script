@@ -34,6 +34,12 @@ local function clickButton(button)
 	clickAt(x, y)
 end
 
+local function getRootPart()
+	local char = player.Character
+	if not char then return nil end
+	return char:FindFirstChild("HumanoidRootPart")
+end
+
 local function isAreaEmpty(areaPart)
 	local areaPos = areaPart.Position
 	for _, otherPlayer in ipairs(Players:GetPlayers()) do
@@ -63,37 +69,34 @@ local function findEmptyToiletArea(lifts)
 			end
 		end
 	end
-
 	for _, area in ipairs(toiletAreas) do
 		if isAreaEmpty(area) then
 			return area
 		end
 	end
-
 	return nil
 end
 
-local function tryWorld1(character)
-	local rootPart = character:WaitForChild("HumanoidRootPart")
-	local lifts = workspace:WaitForChild("Lifts")
+local function tryWorld1()
+	local lifts = workspace:FindFirstChild("Lifts")
+	if not lifts then return end
 
 	while workspace:FindFirstChild("Lifts") do
-		local targetArea = nil
-		local attempts = 0
 
-		while targetArea == nil and attempts < 20 do
-			targetArea = findEmptyToiletArea(lifts)
-			if targetArea == nil then
-				task.wait(2)
-				attempts = attempts + 1
-			end
+		local rootPart = getRootPart()
+		if not rootPart then
+			task.wait(1)
+			continue
 		end
 
-		if targetArea == nil then
-			return
+		local targetArea = findEmptyToiletArea(lifts)
+
+		if not targetArea then
+			task.wait(2)
+			continue
 		end
 
-		rootPart.CFrame = targetArea.CFrame
+		rootPart.CFrame = targetArea.CFrame + Vector3.new(0, 3, 0)
 		task.wait(1)
 
 		if not isAreaEmpty(targetArea) then
@@ -101,9 +104,23 @@ local function tryWorld1(character)
 			continue
 		end
 
-		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
-		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
-		local startButton = queueFrame:WaitForChild("Start", 15)
+		local lobbyGui = playerGui:FindFirstChild("Lobby")
+		if not lobbyGui then
+			task.wait(1)
+			continue
+		end
+
+		local queueFrame = lobbyGui:FindFirstChild("QueueFrame")
+		if not queueFrame then
+			task.wait(1)
+			continue
+		end
+
+		local startButton = queueFrame:FindFirstChild("Start")
+		if not startButton then
+			task.wait(1)
+			continue
+		end
 
 		local elapsed = 0
 		local teleported = false
@@ -133,28 +150,36 @@ local function tryWorld1(character)
 	end
 end
 
-local function runMacro(character)
+local function runMacro()
 	if running then return end
 	running = true
 
-	local rootPart = character:WaitForChild("HumanoidRootPart")
+	local rootPart = getRootPart()
+	if not rootPart then
+		running = false
+		return
+	end
+
 	task.wait(1.5)
 
 	if workspace:FindFirstChild("Lifts") then
 
-		tryWorld1(character)
+		tryWorld1()
 
 	else
 
 		clickAt(823, 122)
 		task.wait(0.5)
 
-		rootPart.CFrame = CFrame.new(
-			112.189713, 18.0619602, 192.314941,
-			1, 0, 0,
-			0, 1, 0,
-			0, 0, 1
-		)
+		rootPart = getRootPart()
+		if rootPart then
+			rootPart.CFrame = CFrame.new(
+				112.189713, 18.0619602, 192.314941,
+				1, 0, 0,
+				0, 1, 0,
+				0, 0, 1
+			)
+		end
 		task.wait(1.5)
 
 		pressKey(Enum.KeyCode.Five)
@@ -193,11 +218,12 @@ end
 
 local function onCharacterAdded(character)
 	running = false
-	task.spawn(runMacro, character)
+	task.wait(1)
+	task.spawn(runMacro)
 end
 
 player.CharacterAdded:Connect(onCharacterAdded)
 
 if player.Character then
-	task.spawn(runMacro, player.Character)
+	task.spawn(runMacro)
 end
