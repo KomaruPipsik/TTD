@@ -56,7 +56,7 @@ end
 local function findEmptyToiletArea(lifts)
 	local toiletAreas = {}
 	for _, lift in ipairs(lifts:GetChildren()) do
-		if string.find(lift.Name, "ToiletHQ") then
+		if string.match(lift.Name, "^ToiletHQ") then
 			local area = lift:FindFirstChild("Area")
 			if area then
 				table.insert(toiletAreas, area)
