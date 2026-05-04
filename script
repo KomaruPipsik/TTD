@@ -53,16 +53,18 @@ local function isAreaEmpty(areaPart)
 	return true
 end
 
-local function findEmptyArea(lifts)
-	local allAreas = {}
+local function findEmptyToiletArea(lifts)
+	local toiletAreas = {}
 	for _, lift in ipairs(lifts:GetChildren()) do
-		local area = lift:FindFirstChild("Area")
-		if area then
-			table.insert(allAreas, area)
+		if string.find(lift.Name, "ToiletHQ") then
+			local area = lift:FindFirstChild("Area")
+			if area then
+				table.insert(toiletAreas, area)
+			end
 		end
 	end
 
-	for _, area in ipairs(allAreas) do
+	for _, area in ipairs(toiletAreas) do
 		if isAreaEmpty(area) then
 			return area
 		end
@@ -86,7 +88,7 @@ local function runMacro(character)
 		local attempts = 0
 
 		while targetArea == nil and attempts < 20 do
-			targetArea = findEmptyArea(lifts)
+			targetArea = findEmptyToiletArea(lifts)
 			if targetArea == nil then
 				task.wait(2)
 				attempts = attempts + 1
