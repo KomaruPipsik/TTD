@@ -113,9 +113,7 @@ local function tryWorld1(character)
 				teleported = true
 				break
 			end
-			if startButton and startButton.Visible then
-				clickButton(startButton)
-			end
+			clickButton(startButton)
 			task.wait(0.3)
 			elapsed = elapsed + 0.3
 		end
@@ -124,10 +122,7 @@ local function tryWorld1(character)
 			break
 		end
 
-		if workspace:FindFirstChild("Lifts") then
-			task.wait(0.5)
-			continue
-		else
+		if not workspace:FindFirstChild("Lifts") then
 			break
 		end
 	end
