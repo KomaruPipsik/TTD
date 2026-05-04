@@ -73,17 +73,11 @@ local function findEmptyToiletArea(lifts)
 	return nil
 end
 
-local function runMacro(character)
-	if running then return end
-	running = true
-
+local function tryWorld1(character)
 	local rootPart = character:WaitForChild("HumanoidRootPart")
-	task.wait(1.5)
+	local lifts = workspace:WaitForChild("Lifts")
 
-	if workspace:FindFirstChild("Lifts") then
-
-		local lifts = workspace:WaitForChild("Lifts")
-
+	while workspace:FindFirstChild("Lifts") do
 		local targetArea = nil
 		local attempts = 0
 
@@ -96,7 +90,6 @@ local function runMacro(character)
 		end
 
 		if targetArea == nil then
-			running = false
 			return
 		end
 
@@ -104,19 +97,57 @@ local function runMacro(character)
 		task.wait(1)
 
 		if not isAreaEmpty(targetArea) then
-			running = false
-			task.spawn(runMacro, character)
-			return
+			task.wait(1)
+			continue
 		end
 
 		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
 		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
 		local startButton = queueFrame:WaitForChild("Start", 15)
 
-		clickButton(startButton)
+		local elapsed = 0
+		local teleported = false
 
+		while elapsed < 5 do
+			if not workspace:FindFirstChild("Lifts") then
+				teleported = true
+				break
+			end
+			if startButton and startButton.Visible then
+				clickButton(startButton)
+			end
+			task.wait(0.3)
+			elapsed = elapsed + 0.3
+		end
+
+		if teleported then
+			break
+		end
+
+		if workspace:FindFirstChild("Lifts") then
+			task.wait(0.5)
+			continue
+		else
+			break
+		end
+	end
+
+	if not workspace:FindFirstChild("Lifts") then
 		task.wait(2)
 		clickAt(767, 690)
+	end
+end
+
+local function runMacro(character)
+	if running then return end
+	running = true
+
+	local rootPart = character:WaitForChild("HumanoidRootPart")
+	task.wait(1.5)
+
+	if workspace:FindFirstChild("Lifts") then
+
+		tryWorld1(character)
 
 	else
 
