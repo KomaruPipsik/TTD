@@ -2,13 +2,8 @@ local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local rootPart = character:WaitForChild("HumanoidRootPart")
 local playerGui = player:WaitForChild("PlayerGui")
-
-local function teleportTo(cf)
-	rootPart.CFrame = cf
-end
+local running = false
 
 local function clickAt(x, y)
 	VirtualInputManager:SendMouseMoveEvent(x, y, game)
@@ -19,24 +14,6 @@ local function clickAt(x, y)
 	task.wait(0.15)
 end
 
-local function clickButton(button)
-	local pos = button.AbsolutePosition
-	local size = button.AbsoluteSize
-	local x = math.floor(pos.X + size.X / 2)
-	local y = math.floor(pos.Y + size.Y / 2)
-	VirtualInputManager:SendMouseMoveEvent(x, y, game)
-	task.wait(0.1)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 1)
-	task.wait(0.15)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 1)
-	task.wait(0.15)
-end
-
-local function moveMouseTo(x, y)
-	VirtualInputManager:SendMouseMoveEvent(x, y, game)
-	task.wait(0.1)
-end
-
 local function pressKey(keyCode)
 	VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
 	task.wait(0.1)
@@ -44,63 +21,95 @@ local function pressKey(keyCode)
 	task.wait(0.1)
 end
 
-if workspace:FindFirstChild("Lifts") then
+local function clickButton(button)
+	local pos = button.AbsolutePosition
+	local size = button.AbsoluteSize
+	local x = math.floor(pos.X + size.X / 2)
+	local y = math.floor(pos.Y + size.Y / 2)
+	clickAt(x, y)
+end
 
-	local lifts = workspace:WaitForChild("Lifts")
-	local toiletHQ = lifts:WaitForChild("ToiletHQ")
-	local area = toiletHQ:WaitForChild("Area")
+local function runMacro(character)
+	if running then return end
+	running = true
 
-	teleportTo(area.CFrame)
-	task.wait(2)
+	local rootPart = character:WaitForChild("HumanoidRootPart")
+	task.wait(1.5)
 
-	local lobbyGui = playerGui:WaitForChild("Lobby", 15)
-	local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
-	local startButton = queueFrame:WaitForChild("Start", 15)
+	if workspace:FindFirstChild("Lifts") then
 
-	task.wait(1)
-	clickButton(startButton)
+		local lifts = workspace:WaitForChild("Lifts")
+		local toiletHQ = lifts:WaitForChild("ToiletHQ")
+		local area = toiletHQ:WaitForChild("Area")
 
-else
+		rootPart.CFrame = area.CFrame
+		task.wait(2)
 
-	teleportTo(CFrame.new(
-		112.189713, 18.0619602, 192.314941,
-		1, 0, 0,
-		0, 1, 0,
-		0, 0, 1
-	))
-	task.wait(2)
+		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
+		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
+		local startButton = queueFrame:WaitForChild("Start", 15)
 
-	local matchGui = playerGui:WaitForChild("Match", 15)
-	local topFrame = matchGui:WaitForChild("TopFrame", 15)
-	local autoSkip = topFrame:WaitForChild("AutoSkip", 15)
-	local onAndOff = autoSkip:WaitForChild("OnAndOff", 15)
+		task.wait(0.5)
+		clickButton(startButton)
 
-	task.wait(1)
-	clickButton(onAndOff)
+		task.wait(2)
+		clickAt(767, 690)
 
-	task.wait(0.5)
-	pressKey(Enum.KeyCode.Five)
+	else
 
-	task.wait(0.5)
-	clickAt(378, 393)
+		rootPart.CFrame = CFrame.new(
+			112.189713, 18.0619602, 192.314941,
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+		)
+		task.wait(2)
 
-	task.wait(25)
-	moveMouseTo(1120, 428)
-	task.wait(0.3)
-	pressKey(Enum.KeyCode.Five)
-	task.wait(0.3)
-	clickAt(1120, 428)
+		local matchGui = playerGui:WaitForChild("Match", 15)
+		local topFrame = matchGui:WaitForChild("TopFrame", 15)
+		local autoSkip = topFrame:WaitForChild("AutoSkip", 15)
+		local onAndOff = autoSkip:WaitForChild("OnAndOff", 15)
 
-	task.wait(45)
-	clickAt(378, 393)
+		clickButton(onAndOff)
+		task.wait(0.5)
 
-	task.wait(0.5)
-	clickAt(88, 502)
+		pressKey(Enum.KeyCode.Five)
+		task.wait(0.5)
 
-	task.wait(40)
-	clickAt(88, 502)
+		clickAt(823, 122)
 
-	task.wait(45)
-	clickAt(88, 502)
+		task.wait(25)
 
+		clickAt(823, 122)
+
+		task.wait(1)
+
+		clickAt(378, 393)
+
+		task.wait(45)
+
+		clickAt(104, 495)
+
+		task.wait(37)
+
+		clickAt(104, 495)
+
+		task.wait(42)
+
+		clickAt(104, 495)
+
+	end
+
+	running = false
+end
+
+local function onCharacterAdded(character)
+	running = false
+	task.spawn(runMacro, character)
+end
+
+player.CharacterAdded:Connect(onCharacterAdded)
+
+if player.Character then
+	task.spawn(runMacro, player.Character)
 end
