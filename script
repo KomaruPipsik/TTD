@@ -34,12 +34,6 @@ local function clickButton(button)
 	clickAt(x, y)
 end
 
-local function getRootPart()
-	local char = player.Character
-	if not char then return nil end
-	return char:FindFirstChild("HumanoidRootPart")
-end
-
 local function isAreaEmpty(areaPart)
 	local areaPos = areaPart.Position
 	for _, otherPlayer in ipairs(Players:GetPlayers()) do
@@ -69,24 +63,26 @@ local function findEmptyToiletArea(lifts)
 			end
 		end
 	end
+
 	for _, area in ipairs(toiletAreas) do
 		if isAreaEmpty(area) then
 			return area
 		end
 	end
+
 	return nil
 end
 
-local function tryWorld1()
-	local lifts = workspace:WaitForChild("Lifts")
+local function runMacro(character)
+	if running then return end
+	running = true
 
-	while workspace:FindFirstChild("Lifts") do
+	local rootPart = character:WaitForChild("HumanoidRootPart")
+	task.wait(1.5)
 
-		local rootPart = getRootPart()
-		if not rootPart then
-			task.wait(1)
-			continue
-		end
+	if workspace:FindFirstChild("Lifts") then
+
+		local lifts = workspace:WaitForChild("Lifts")
 
 		local targetArea = nil
 		local attempts = 0
@@ -100,6 +96,7 @@ local function tryWorld1()
 		end
 
 		if targetArea == nil then
+			running = false
 			return
 		end
 
@@ -107,59 +104,21 @@ local function tryWorld1()
 		task.wait(1)
 
 		if not isAreaEmpty(targetArea) then
-			task.wait(1)
-			continue
+			running = false
+			task.spawn(runMacro, character)
+			return
 		end
 
 		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
 		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
 		local startButton = queueFrame:WaitForChild("Start", 15)
 
-		local elapsed = 0
-		local teleported = false
+		clickButton(startButton)
 
-		while elapsed < 5 do
-			if not workspace:FindFirstChild("Lifts") then
-				teleported = true
-				break
-			end
-			clickButton(startButton)
-			task.wait(0.3)
-			elapsed = elapsed + 0.3
-		end
-
-		if teleported then
-			break
-		end
-
-		if not workspace:FindFirstChild("Lifts") then
-			break
-		end
-	end
-
-	if not workspace:FindFirstChild("Lifts") then
 		task.wait(2)
 		clickAt(767, 690)
-	end
-end
-
-local function runMacro()
-	if running then return end
-	running = true
-
-	task.wait(1.5)
-
-	if workspace:FindFirstChild("Lifts") then
-
-		tryWorld1()
 
 	else
-
-		local rootPart = getRootPart()
-		if not rootPart then
-			running = false
-			return
-		end
 
 		clickAt(823, 122)
 		task.wait(0.5)
@@ -206,14 +165,13 @@ local function runMacro()
 	running = false
 end
 
-local function onCharacterAdded()
+local function onCharacterAdded(character)
 	running = false
-	task.wait(1)
-	task.spawn(runMacro)
+	task.spawn(runMacro, character)
 end
 
 player.CharacterAdded:Connect(onCharacterAdded)
 
 if player.Character then
-	task.spawn(runMacro)
+	task.spawn(runMacro, player.Character)
 end
