@@ -14,6 +14,11 @@ local function clickAt(x, y)
 	task.wait(0.15)
 end
 
+local function moveMouseTo(x, y)
+	VirtualInputManager:SendMouseMoveEvent(x, y, game)
+	task.wait(0.1)
+end
+
 local function pressKey(keyCode)
 	VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
 	task.wait(0.1)
@@ -57,46 +62,45 @@ local function runMacro(character)
 
 	else
 
+		clickAt(823, 122)
+		task.wait(0.5)
+
 		rootPart.CFrame = CFrame.new(
 			112.189713, 18.0619602, 192.314941,
 			1, 0, 0,
 			0, 1, 0,
 			0, 0, 1
 		)
-		task.wait(2)
-
-		local matchGui = playerGui:WaitForChild("Match", 15)
-		local topFrame = matchGui:WaitForChild("TopFrame", 15)
-		local autoSkip = topFrame:WaitForChild("AutoSkip", 15)
-		local onAndOff = autoSkip:WaitForChild("OnAndOff", 15)
-
-		clickButton(onAndOff)
-		task.wait(0.5)
+		task.wait(1.5)
 
 		pressKey(Enum.KeyCode.Five)
 		task.wait(0.5)
 
-		clickAt(823, 122)
+		clickAt(378, 393)
 
 		task.wait(25)
 
-		clickAt(823, 122)
+		moveMouseTo(1120, 428)
+		task.wait(0.3)
+		pressKey(Enum.KeyCode.Five)
+		task.wait(0.3)
+		clickAt(1120, 428)
 
-		task.wait(1)
+		task.wait(41)
 
 		clickAt(378, 393)
 
-		task.wait(45)
+		task.wait(2)
 
-		clickAt(104, 495)
+		clickAt(88, 502)
 
-		task.wait(37)
+		task.wait(38)
 
-		clickAt(104, 495)
+		clickAt(88, 502)
 
 		task.wait(42)
 
-		clickAt(104, 495)
+		clickAt(88, 502)
 
 	end
 
