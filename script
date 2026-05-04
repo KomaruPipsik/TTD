@@ -1,103 +1,102 @@
 local Players = game:GetService("Players")
-local StarterGui = game:GetService("StarterGui")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local rootPart = character:WaitForChild("HumanoidRootPart")
+local playerGui = player:WaitForChild("PlayerGui")
 
 local function teleportTo(cf)
 	rootPart.CFrame = cf
 end
 
+local function clickButton(button)
+	button:Activate()
+	task.wait(0.1)
+	local event = button:FindFirstChild("MouseButton1Click")
+	if button:IsA("GuiButton") then
+		button.MouseButton1Click:Fire()
+	end
+end
+
 local function clickAt(x, y)
+	VirtualInputManager:SendMouseMoveEvent(x, y, game)
+	task.wait(0.05)
 	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 1)
 	task.wait(0.1)
 	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 1)
+	task.wait(0.1)
 end
 
 local function moveMouseTo(x, y)
 	VirtualInputManager:SendMouseMoveEvent(x, y, game)
+	task.wait(0.1)
 end
 
 local function pressKey(keyCode)
 	VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
 	task.wait(0.1)
 	VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-end
-
-local function fireButton(button)
-	local clickDetector = button:FindFirstChildOfClass("ClickDetector")
-	if clickDetector then
-		fireproximityprompt = function() end
-		local event = clickDetector.MouseClick
-		event:Fire(player)
-	else
-		local conn
-		conn = button.Activated:Connect(function() end)
-		conn:Disconnect()
-		button:Activate()
-	end
+	task.wait(0.1)
 end
 
 if workspace:FindFirstChild("Lifts") then
+
 	local lifts = workspace:WaitForChild("Lifts")
 	local toiletHQ = lifts:WaitForChild("ToiletHQ")
 	local area = toiletHQ:WaitForChild("Area")
+
 	teleportTo(area.CFrame)
+	task.wait(2)
+
+	local lobbyGui = playerGui:WaitForChild("Lobby", 10)
+	local queueFrame = lobbyGui:WaitForChild("QueueFrame", 10)
+	local startButton = queueFrame:WaitForChild("Start", 10)
 
 	task.wait(1)
+	clickButton(startButton)
 
-	local lobbyGui = StarterGui:WaitForChild("Lobby")
-	local queueFrame = lobbyGui:WaitForChild("QueueFrame")
-	local startButton = queueFrame:WaitForChild("Start")
-	fireButton(startButton)
 else
+
 	teleportTo(CFrame.new(
 		112.189713, 18.0619602, 192.314941,
 		1, 0, 0,
 		0, 1, 0,
 		0, 0, 1
 	))
+	task.wait(2)
+
+	local matchGui = playerGui:WaitForChild("Match", 10)
+	local topFrame = matchGui:WaitForChild("TopFrame", 10)
+	local autoSkip = topFrame:WaitForChild("AutoSkip", 10)
+	local onAndOff = autoSkip:WaitForChild("OnAndOff", 10)
 
 	task.wait(1)
-
-	local matchGui = StarterGui:WaitForChild("Match")
-	local topFrame = matchGui:WaitForChild("TopFrame")
-	local autoSkip = topFrame:WaitForChild("AutoSkip")
-	local onAndOff = autoSkip:WaitForChild("OnAndOff")
-	fireButton(onAndOff)
+	clickButton(onAndOff)
 
 	task.wait(0.5)
-
 	pressKey(Enum.KeyCode.Five)
 
-	task.wait(0.3)
-
+	task.wait(0.5)
 	clickAt(378, 393)
 
 	task.wait(25)
-
 	moveMouseTo(1120, 428)
-	task.wait(0.2)
+	task.wait(0.3)
 	pressKey(Enum.KeyCode.Five)
-	task.wait(0.2)
+	task.wait(0.3)
 	clickAt(1120, 428)
 
 	task.wait(45)
-
 	clickAt(378, 393)
 
 	task.wait(0.5)
-
 	clickAt(88, 502)
 
 	task.wait(40)
-
 	clickAt(88, 502)
 
 	task.wait(45)
-
 	clickAt(88, 502)
+
 end
