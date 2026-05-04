@@ -78,8 +78,7 @@ local function findEmptyToiletArea(lifts)
 end
 
 local function tryWorld1()
-	local lifts = workspace:FindFirstChild("Lifts")
-	if not lifts then return end
+	local lifts = workspace:WaitForChild("Lifts")
 
 	while workspace:FindFirstChild("Lifts") do
 
@@ -89,14 +88,22 @@ local function tryWorld1()
 			continue
 		end
 
-		local targetArea = findEmptyToiletArea(lifts)
+		local targetArea = nil
+		local attempts = 0
 
-		if not targetArea then
-			task.wait(2)
-			continue
+		while targetArea == nil and attempts < 20 do
+			targetArea = findEmptyToiletArea(lifts)
+			if targetArea == nil then
+				task.wait(2)
+				attempts = attempts + 1
+			end
 		end
 
-		rootPart.CFrame = targetArea.CFrame + Vector3.new(0, 3, 0)
+		if targetArea == nil then
+			return
+		end
+
+		rootPart.CFrame = targetArea.CFrame
 		task.wait(1)
 
 		if not isAreaEmpty(targetArea) then
@@ -104,23 +111,9 @@ local function tryWorld1()
 			continue
 		end
 
-		local lobbyGui = playerGui:FindFirstChild("Lobby")
-		if not lobbyGui then
-			task.wait(1)
-			continue
-		end
-
-		local queueFrame = lobbyGui:FindFirstChild("QueueFrame")
-		if not queueFrame then
-			task.wait(1)
-			continue
-		end
-
-		local startButton = queueFrame:FindFirstChild("Start")
-		if not startButton then
-			task.wait(1)
-			continue
-		end
+		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
+		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
+		local startButton = queueFrame:WaitForChild("Start", 15)
 
 		local elapsed = 0
 		local teleported = false
@@ -154,12 +147,6 @@ local function runMacro()
 	if running then return end
 	running = true
 
-	local rootPart = getRootPart()
-	if not rootPart then
-		running = false
-		return
-	end
-
 	task.wait(1.5)
 
 	if workspace:FindFirstChild("Lifts") then
@@ -168,18 +155,21 @@ local function runMacro()
 
 	else
 
+		local rootPart = getRootPart()
+		if not rootPart then
+			running = false
+			return
+		end
+
 		clickAt(823, 122)
 		task.wait(0.5)
 
-		rootPart = getRootPart()
-		if rootPart then
-			rootPart.CFrame = CFrame.new(
-				112.189713, 18.0619602, 192.314941,
-				1, 0, 0,
-				0, 1, 0,
-				0, 0, 1
-			)
-		end
+		rootPart.CFrame = CFrame.new(
+			112.189713, 18.0619602, 192.314941,
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+		)
 		task.wait(1.5)
 
 		pressKey(Enum.KeyCode.Five)
@@ -216,7 +206,7 @@ local function runMacro()
 	running = false
 end
 
-local function onCharacterAdded(character)
+local function onCharacterAdded()
 	running = false
 	task.wait(1)
 	task.spawn(runMacro)
