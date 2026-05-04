@@ -1,27 +1,11 @@
+if queue_on_teleport then
+	queue_on_teleport([[
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local running = false
-
--- =============================================
---   АВТО-ЗАПУСК ПРИ ТЕЛЕПОРТАЦИИ
--- =============================================
-local scriptSource = game:HttpGet and "" or ""
-
--- Получаем исходный код текущего скрипта для передачи через телепорт
-local currentScript = [[
-local Players = game:GetService("Players")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local TeleportService = game:GetService("TeleportService")
-
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local running = false
-
-]] .. [=[
 
 local function clickAt(x, y)
 	VirtualInputManager:SendMouseMoveEvent(x, y, game)
@@ -193,19 +177,17 @@ player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
 	task.spawn(runMacro, player.Character)
 end
-]=]
-
--- Регистрируем скрипт для автозапуска после телепортации
-if queue_on_teleport then
-	queue_on_teleport(currentScript)
-	print("[Macro] queue_on_teleport зарегистрирован успешно")
-else
-	warn("[Macro] queue_on_teleport недоступен в данном экзекуторе")
+	]])
 end
 
--- =============================================
---   ОСНОВНОЙ КОД
--- =============================================
+-- ======= ОСНОВНОЙ КОД (без изменений) =======
+
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local running = false
 
 local function clickAt(x, y)
 	VirtualInputManager:SendMouseMoveEvent(x, y, game)
