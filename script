@@ -90,17 +90,17 @@ local function runMacro(character)
 
 		clickAt(378, 393)
 
-		task.wait(2)
+		task.wait(4)
 
-		clickAt(88, 502)
+		clickAt(98, 496)
 
-		task.wait(38)
+		task.wait(35)
 
-		clickAt(88, 502)
+		clickAt(98, 496)
 
-		task.wait(42)
+		task.wait(39)
 
-		clickAt(88, 502)
+		clickAt(98, 496)
 
 	end
 
