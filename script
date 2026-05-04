@@ -1,0 +1,103 @@
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local function teleportTo(cf)
+	rootPart.CFrame = cf
+end
+
+local function clickAt(x, y)
+	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 1)
+	task.wait(0.1)
+	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 1)
+end
+
+local function moveMouseTo(x, y)
+	VirtualInputManager:SendMouseMoveEvent(x, y, game)
+end
+
+local function pressKey(keyCode)
+	VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+	task.wait(0.1)
+	VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+end
+
+local function fireButton(button)
+	local clickDetector = button:FindFirstChildOfClass("ClickDetector")
+	if clickDetector then
+		fireproximityprompt = function() end
+		local event = clickDetector.MouseClick
+		event:Fire(player)
+	else
+		local conn
+		conn = button.Activated:Connect(function() end)
+		conn:Disconnect()
+		button:Activate()
+	end
+end
+
+if workspace:FindFirstChild("Lifts") then
+	local lifts = workspace:WaitForChild("Lifts")
+	local toiletHQ = lifts:WaitForChild("ToiletHQ")
+	local area = toiletHQ:WaitForChild("Area")
+	teleportTo(area.CFrame)
+
+	task.wait(1)
+
+	local lobbyGui = StarterGui:WaitForChild("Lobby")
+	local queueFrame = lobbyGui:WaitForChild("QueueFrame")
+	local startButton = queueFrame:WaitForChild("Start")
+	fireButton(startButton)
+else
+	teleportTo(CFrame.new(
+		112.189713, 18.0619602, 192.314941,
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1
+	))
+
+	task.wait(1)
+
+	local matchGui = StarterGui:WaitForChild("Match")
+	local topFrame = matchGui:WaitForChild("TopFrame")
+	local autoSkip = topFrame:WaitForChild("AutoSkip")
+	local onAndOff = autoSkip:WaitForChild("OnAndOff")
+	fireButton(onAndOff)
+
+	task.wait(0.5)
+
+	pressKey(Enum.KeyCode.Five)
+
+	task.wait(0.3)
+
+	clickAt(378, 393)
+
+	task.wait(25)
+
+	moveMouseTo(1120, 428)
+	task.wait(0.2)
+	pressKey(Enum.KeyCode.Five)
+	task.wait(0.2)
+	clickAt(1120, 428)
+
+	task.wait(45)
+
+	clickAt(378, 393)
+
+	task.wait(0.5)
+
+	clickAt(88, 502)
+
+	task.wait(40)
+
+	clickAt(88, 502)
+
+	task.wait(45)
+
+	clickAt(88, 502)
+end
