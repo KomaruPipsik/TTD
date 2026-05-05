@@ -1,3 +1,6 @@
+local FILE_NAME = "macro_autorun.lua"
+
+local SCRIPT = [==[
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
@@ -5,6 +8,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local running = false
 
+-- Бесконечный авто-перезапуск: при каждом запуске регистрируем следующий
 if queue_on_teleport then
 	pcall(function()
 		queue_on_teleport('loadstring(readfile("macro_autorun.lua"))()')
@@ -82,13 +86,15 @@ local function runMacro(character)
 	running = true
 
 	local rootPart = character:WaitForChild("HumanoidRootPart")
-	task.wait(3)
+	task.wait(3) -- ждём загрузку мира после телепортации
 
 	if workspace:FindFirstChild("Lifts") then
+		-- Первый мир (лобби): есть папка Lifts
 		local lifts = workspace:WaitForChild("Lifts")
 
 		local targetArea = nil
 		local attempts = 0
+
 		while targetArea == nil and attempts < 20 do
 			targetArea = findEmptyToiletArea(lifts)
 			if targetArea == nil then
@@ -102,64 +108,26 @@ local function runMacro(character)
 			return
 		end
 
-		local function tryStart()
-			rootPart.CFrame = targetArea.CFrame
-			task.wait(1)
+		rootPart.CFrame = targetArea.CFrame
+		task.wait(1)
 
-			if not isAreaEmpty(targetArea) then
-				return false
-			end
-
-			local lobbyGui = playerGui:WaitForChild("Lobby", 15)
-			local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
-			local startButton = queueFrame:WaitForChild("Start", 15)
-
-			clickButton(startButton)
-			task.wait(2)
-			clickAt(767, 690)
-
-			-- Ждём телепортацию 15 секунд
-			local elapsed = 0
-			while elapsed < 15 do
-				task.wait(1)
-				elapsed = elapsed + 1
-				local btn = queueFrame:FindFirstChild("Start")
-				if btn == nil then
-					return true -- успешно
-				end
-			end
-
-			-- Кнопка не сработала — сброс позиции
-			print("[Macro] Таймаут, сбрасываем позицию...")
-			local originalCFrame = targetArea.CFrame
-			rootPart.CFrame = originalCFrame * CFrame.new(0, 25, 0)
-			task.wait(1)
-			rootPart.CFrame = originalCFrame
-			task.wait(1)
-
-			return false
-		end
-
-		local success = false
-		local retries = 0
-		while not success and retries < 5 do
-			if not isAreaEmpty(targetArea) then
-				targetArea = nil
-				while targetArea == nil do
-					targetArea = findEmptyToiletArea(lifts)
-					if targetArea == nil then task.wait(2) end
-				end
-			end
-			success = tryStart()
-			retries = retries + 1
-		end
-
-		if not success then
+		if not isAreaEmpty(targetArea) then
 			running = false
+			task.spawn(runMacro, character)
 			return
 		end
 
+		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
+		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
+		local startButton = queueFrame:WaitForChild("Start", 15)
+
+		clickButton(startButton)
+
+		task.wait(2)
+		clickAt(767, 690)
+
 	else
+		-- Второй мир (игра): нет папки Lifts
 		clickAt(823, 122)
 		task.wait(0.5)
 
@@ -209,3 +177,26 @@ player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
 	task.spawn(runMacro, player.Character)
 end
+]==]
+
+-- Сохраняем скрипт в файл экзекутора (для бесконечного перезапуска)
+if writefile then
+	writefile(FILE_NAME, SCRIPT)
+	print("[Macro] Скрипт сохранён в " .. FILE_NAME)
+end
+
+-- Регистрируем первый авто-запуск после телепортации
+if queue_on_teleport then
+	if readfile then
+		-- Читает себя из файла -> бесконечная цепочка
+		queue_on_teleport('loadstring(readfile("' .. FILE_NAME .. '"))()')
+		print("[Macro] queue_on_teleport (readfile) зарегистрирован")
+	else
+		-- Фолбэк если writefile/readfile не поддерживаются
+		queue_on_teleport(SCRIPT)
+		print("[Macro] queue_on_teleport (fallback) зарегистрирован")
+	end
+end
+
+-- Запускаем немедленно
+loadstring(SCRIPT)()
