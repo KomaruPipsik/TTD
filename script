@@ -1,11 +1,19 @@
+local FILE_NAME = "macro_autorun.lua"
+
+local SCRIPT = [==[
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local running = false
+
+-- Бесконечный авто-перезапуск: при каждом запуске регистрируем следующий
 if queue_on_teleport then
-	queue_on_teleport([[
-local Players = game:GetService("Players")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local running = false
+	pcall(function()
+		queue_on_teleport('loadstring(readfile("macro_autorun.lua"))()')
+	end)
+end
 
 local function clickAt(x, y)
 	VirtualInputManager:SendMouseMoveEvent(x, y, game)
@@ -65,13 +73,11 @@ local function findEmptyToiletArea(lifts)
 			end
 		end
 	end
-
 	for _, area in ipairs(toiletAreas) do
 		if isAreaEmpty(area) then
 			return area
 		end
 	end
-
 	return nil
 end
 
@@ -80,10 +86,10 @@ local function runMacro(character)
 	running = true
 
 	local rootPart = character:WaitForChild("HumanoidRootPart")
-	task.wait(1.5)
+	task.wait(3) -- ждём загрузку мира после телепортации
 
 	if workspace:FindFirstChild("Lifts") then
-
+		-- Первый мир (лобби): есть папка Lifts
 		local lifts = workspace:WaitForChild("Lifts")
 
 		local targetArea = nil
@@ -121,7 +127,7 @@ local function runMacro(character)
 		clickAt(767, 690)
 
 	else
-
+		-- Второй мир (игра): нет папки Lifts
 		clickAt(823, 122)
 		task.wait(0.5)
 
@@ -137,7 +143,6 @@ local function runMacro(character)
 		task.wait(0.5)
 
 		clickAt(378, 393)
-
 		task.wait(25)
 
 		moveMouseTo(1120, 428)
@@ -145,23 +150,18 @@ local function runMacro(character)
 		pressKey(Enum.KeyCode.Five)
 		task.wait(0.3)
 		clickAt(1120, 428)
-
 		task.wait(41)
 
 		clickAt(378, 393)
-
 		task.wait(4)
 
 		clickAt(98, 496)
-
 		task.wait(35)
 
 		clickAt(98, 496)
-
 		task.wait(39)
 
 		clickAt(98, 496)
-
 	end
 
 	running = false
@@ -177,185 +177,26 @@ player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
 	task.spawn(runMacro, player.Character)
 end
-	]])
+]==]
+
+-- Сохраняем скрипт в файл экзекутора (для бесконечного перезапуска)
+if writefile then
+	writefile(FILE_NAME, SCRIPT)
+	print("[Macro] Скрипт сохранён в " .. FILE_NAME)
 end
 
--- ======= ОСНОВНОЙ КОД (без изменений) =======
-
-local Players = game:GetService("Players")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local running = false
-
-local function clickAt(x, y)
-	VirtualInputManager:SendMouseMoveEvent(x, y, game)
-	task.wait(0.05)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 1)
-	task.wait(0.15)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 1)
-	task.wait(0.15)
-end
-
-local function moveMouseTo(x, y)
-	VirtualInputManager:SendMouseMoveEvent(x, y, game)
-	task.wait(0.1)
-end
-
-local function pressKey(keyCode)
-	VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
-	task.wait(0.1)
-	VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-	task.wait(0.1)
-end
-
-local function clickButton(button)
-	local pos = button.AbsolutePosition
-	local size = button.AbsoluteSize
-	local x = math.floor(pos.X + size.X / 2)
-	local y = math.floor(pos.Y + size.Y / 2)
-	clickAt(x, y)
-end
-
-local function isAreaEmpty(areaPart)
-	local areaPos = areaPart.Position
-	for _, otherPlayer in ipairs(Players:GetPlayers()) do
-		if otherPlayer ~= player then
-			local otherChar = otherPlayer.Character
-			if otherChar then
-				local otherRoot = otherChar:FindFirstChild("HumanoidRootPart")
-				if otherRoot then
-					local dist = (otherRoot.Position - areaPos).Magnitude
-					if dist < 50 then
-						return false
-					end
-				end
-			end
-		end
-	end
-	return true
-end
-
-local function findEmptyToiletArea(lifts)
-	local toiletAreas = {}
-	for _, lift in ipairs(lifts:GetChildren()) do
-		if string.match(lift.Name, "^ToiletHQ") then
-			local area = lift:FindFirstChild("Area")
-			if area then
-				table.insert(toiletAreas, area)
-			end
-		end
-	end
-
-	for _, area in ipairs(toiletAreas) do
-		if isAreaEmpty(area) then
-			return area
-		end
-	end
-
-	return nil
-end
-
-local function runMacro(character)
-	if running then return end
-	running = true
-
-	local rootPart = character:WaitForChild("HumanoidRootPart")
-	task.wait(1.5)
-
-	if workspace:FindFirstChild("Lifts") then
-
-		local lifts = workspace:WaitForChild("Lifts")
-
-		local targetArea = nil
-		local attempts = 0
-
-		while targetArea == nil and attempts < 20 do
-			targetArea = findEmptyToiletArea(lifts)
-			if targetArea == nil then
-				task.wait(2)
-				attempts = attempts + 1
-			end
-		end
-
-		if targetArea == nil then
-			running = false
-			return
-		end
-
-		rootPart.CFrame = targetArea.CFrame
-		task.wait(1)
-
-		if not isAreaEmpty(targetArea) then
-			running = false
-			task.spawn(runMacro, character)
-			return
-		end
-
-		local lobbyGui = playerGui:WaitForChild("Lobby", 15)
-		local queueFrame = lobbyGui:WaitForChild("QueueFrame", 15)
-		local startButton = queueFrame:WaitForChild("Start", 15)
-
-		clickButton(startButton)
-
-		task.wait(2)
-		clickAt(767, 690)
-
+-- Регистрируем первый авто-запуск после телепортации
+if queue_on_teleport then
+	if readfile then
+		-- Читает себя из файла -> бесконечная цепочка
+		queue_on_teleport('loadstring(readfile("' .. FILE_NAME .. '"))()')
+		print("[Macro] queue_on_teleport (readfile) зарегистрирован")
 	else
-
-		clickAt(823, 122)
-		task.wait(0.5)
-
-		rootPart.CFrame = CFrame.new(
-			112.189713, 18.0619602, 192.314941,
-			1, 0, 0,
-			0, 1, 0,
-			0, 0, 1
-		)
-		task.wait(1.5)
-
-		pressKey(Enum.KeyCode.Five)
-		task.wait(0.5)
-
-		clickAt(378, 393)
-
-		task.wait(25)
-
-		moveMouseTo(1120, 428)
-		task.wait(0.3)
-		pressKey(Enum.KeyCode.Five)
-		task.wait(0.3)
-		clickAt(1120, 428)
-
-		task.wait(41)
-
-		clickAt(378, 393)
-
-		task.wait(4)
-
-		clickAt(98, 496)
-
-		task.wait(35)
-
-		clickAt(98, 496)
-
-		task.wait(39)
-
-		clickAt(98, 496)
-
+		-- Фолбэк если writefile/readfile не поддерживаются
+		queue_on_teleport(SCRIPT)
+		print("[Macro] queue_on_teleport (fallback) зарегистрирован")
 	end
-
-	running = false
 end
 
-local function onCharacterAdded(character)
-	running = false
-	task.spawn(runMacro, character)
-end
-
-player.CharacterAdded:Connect(onCharacterAdded)
-
-if player.Character then
-	task.spawn(runMacro, player.Character)
-end
+-- Запускаем немедленно
+loadstring(SCRIPT)()
