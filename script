@@ -1,6 +1,3 @@
-local FILE_NAME = "macro_autorun.lua"
-
-local SCRIPT = [==[
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
@@ -128,12 +125,12 @@ local function runMacro(character)
 				elapsed = elapsed + 1
 				local btn = queueFrame:FindFirstChild("Start")
 				if btn == nil then
-					return true -- телепортация прошла успешно
+					return true -- успешно
 				end
 			end
 
-			-- Таймаут — сбрасываем позицию и пробуем снова
-			print("[Macro] Таймаут! Сбрасываем позицию...")
+			-- Кнопка не сработала — сброс позиции
+			print("[Macro] Таймаут, сбрасываем позицию...")
 			local originalCFrame = targetArea.CFrame
 			rootPart.CFrame = originalCFrame * CFrame.new(0, 25, 0)
 			task.wait(1)
@@ -163,7 +160,6 @@ local function runMacro(character)
 		end
 
 	else
-		-- Второй мир (нет Lifts)
 		clickAt(823, 122)
 		task.wait(0.5)
 
@@ -213,23 +209,3 @@ player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
 	task.spawn(runMacro, player.Character)
 end
-]==]
-
--- Сохраняем в файл для бесконечного перезапуска
-if writefile then
-	writefile(FILE_NAME, SCRIPT)
-	print("[Macro] Сохранён в " .. FILE_NAME)
-end
-
--- Регистрируем авто-запуск после телепортации
-if queue_on_teleport then
-	if readfile then
-		queue_on_teleport('loadstring(readfile("' .. FILE_NAME .. '"))()')
-		print("[Macro] queue_on_teleport зарегистрирован")
-	else
-		queue_on_teleport(SCRIPT)
-	end
-end
-
--- Запускаем сразу
-loadstring(SCRIPT)()
